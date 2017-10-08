@@ -1,0 +1,9 @@
+android_kernel_samsung_universal8890 "" jc@lineageos.org
+android_kernel_samsung_espresso10 cm-13.0 ""
+android_kernel_motorola_ghost cm-13.0 ""
+android_kernel_samsung_ks01lte cm-13.0 ""
+android_kernel_samsung_tuna cm-13.0 ""
+android_kernel_samsung_manta cm-13.0 ""
+android_kernel_samsung_mondrianwifi cm-13.0 ""
+android_kernel_nvidia_roth cm-13.0 ""
+android_kernel_alcatel_msm8916 "" "haggertk@lineageos.org dan.pasanen@gmail.com"
