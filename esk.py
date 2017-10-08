@@ -75,7 +75,7 @@ def addReposExtras(repos):
         continue
       for r in repos:
         if r['name'] == row[0]:
-          r['maintainers'] = row[2].split()
+          r['maintainers'] = row[2].replace("OBFusCAAT", "@").split()
           if r['branch'] in row[1].split():
             r['include_branch'] = True
 
