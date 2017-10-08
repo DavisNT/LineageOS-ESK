@@ -1,0 +1,7 @@
+CVE-2016-5195 LineageOS/android_kernel_samsung_exynos7420 cm-14.1
+CVE-2016-5195 LineageOS/android_kernel_motorola_ghost cm-13.0
+CVE-2016-5195 LineageOS/android_kernel_cyanogen_msm8994 cm-14.1
+CVE-2016-5195 LineageOS/android_kernel_samsung_mondrianwifi cm-14.1
+CVE-2016-5195 LineageOS/android_kernel_nvidia_roth cm-14.1
+CVE-2016-5195 LineageOS/android_kernel_alcatel_msm8916 cm-14.1
+CVE-2016-5195 LineageOS/android_kernel_motorola_msm8960dt-common cm-14.1
