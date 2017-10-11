@@ -135,7 +135,8 @@ def determineVulnerableRepos(repos, defs):
         repo.update({'cve_status': 'VULNERABLE'})
         repo.update({'cve_def': d})
         break
-    #print repo['full_name']+" ("+repo['branch']+": "+repo['kernel_version']+"): "+repo['cve_status']
+    if VERBOSE:
+      print repo['full_name']+" ("+repo['branch']+": "+repo['kernel_version']+"): "+repo['cve_status']
   return ret
 
 def absPathTo(file):
@@ -181,7 +182,7 @@ def prepareRepo(repo, workdir, upstream):
 
   return True
 
-def patchRepo(repo, upstream, cve, commits, gerrit_user):
+def patchRepo(repo, upstream, cve, commits, gerrit_user, dryrun):
   print "Preparing Gerrit review branch "+cve+"-"+repo['branch']+"..."
   if subprocess.call("git branch "+cve+"-"+repo['branch']+" --track origin/"+repo['branch'], shell=True) != 0:
     return False
@@ -205,12 +206,22 @@ def patchRepo(repo, upstream, cve, commits, gerrit_user):
     if 'maintainers' in repo:
       for m in repo['maintainers']:
         reviewers = reviewers+",r="+m
-    if subprocess.call("git push ssh://"+gerrit_user+"@review.lineageos.org:29418/"+repo['full_name']+".git HEAD:refs/for/"+repo['branch']+"%topic="+cve+reviewers, shell=True) != 0:
-      return False
+    if not dryrun:
+      if subprocess.call("git push ssh://"+gerrit_user+"@review.lineageos.org:29418/"+repo['full_name']+".git HEAD:refs/for/"+repo['branch']+"%topic="+cve+reviewers, shell=True) != 0:
+        return False
+    else:
+      print colors.YELLOW+"DRYRUN! Nothing will be sent to Gerrit, submitted.txt not updated."+colors.ENDC
 
-  with open(absPathTo("submitted.txt"), "ab") as f:
-    writer = csv.writer(f, delimiter=" ", lineterminator=os.linesep, quoting=csv.QUOTE_MINIMAL)
-    writer.writerow([cve, repo['full_name'], repo['branch']])
+  if not dryrun:
+    with open(absPathTo("submitted.txt"), "ab") as f:
+      writer = csv.writer(f, delimiter=" ", lineterminator=os.linesep, quoting=csv.QUOTE_MINIMAL)
+      writer.writerow([cve, repo['full_name'], repo['branch']])
+  else:
+    print "Deleting branch "+cve+"-"+repo['branch']+"..."
+    if subprocess.call("git checkout "+repo['branch'], shell=True) != 0:
+      return False
+    if subprocess.call("git branch -D "+cve+"-"+repo['branch'], shell=True) != 0:
+      return False
 
   return True
 
@@ -277,9 +288,13 @@ parser.add_argument('--fix', action='store_true', help='Submit fix(es) for vulne
 parser.add_argument('--defs', type=argparse.FileType('r'), default='cve_defs.txt', help='File with CVE definitions (default cve_defs.txt).')
 parser.add_argument('--workdir', default='repos', help='Directory to clone Git repositories into. Must NOT be shared with Android build dir.')
 parser.add_argument('--branches', default='cm-14.1 lineage-15.0', help='Branches to process (in addition to branches specified in repos_extras.txt).')
-parser.add_argument('--update-reviewers', action='store_true', help='Add recent reviewers/approvers from Gerrit to reviewers in repos_extras.txt')
+parser.add_argument('--update-reviewers', action='store_true', help='Add recent reviewers/approvers from Gerrit to reviewers in repos_extras.txt. Skips CVE processing.')
+parser.add_argument('--dryrun', action='store_true', help='Do NOT submit changes to Gerrit (and no updates to submitted.txt). Useful for testing how CVE definitions merge.')
+parser.add_argument('--verbose', action='store_true', help='Verbose output (in some places).')
+
 args = parser.parse_args()
 branches = list(args.branches.split())
+VERBOSE = args.verbose
 
 # Call update reviewers
 if args.update_reviewers:
@@ -332,7 +347,7 @@ for cve, defs in defsAll.iteritems():
           print colors.RED+"FAILURE!!!"+colors.ENDC+" Skipping "+r['full_name']+" for "+cve
           continue
         print "Repository prepared."
-        if not patchRepo(r, d['upstream'], cve, d['commits'], gerrit_user):
+        if not patchRepo(r, d['upstream'], cve, d['commits'], gerrit_user, args.dryrun):
           print colors.RED+"FAILURE!!!"+colors.ENDC+" Skipping "+r['full_name']+" for "+cve
           continue
         print colors.GREEN+"Submitted "+cve+" fix for "+r['full_name']+" ("+r['branch']+")..."+colors.ENDC
