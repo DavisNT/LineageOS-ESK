@@ -13,6 +13,7 @@ import getpass
 import time
 import subprocess
 import hashlib
+import shutil
 
 MAX_CACHE_SECONDS = 60*60*24*14
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
@@ -182,6 +183,14 @@ def prepareRepo(repo, workdir, upstream):
 
   return True
 
+def autocleanRepo(index, repos, workdir):
+  if index+1 == len(repos) or repos[i]['full_name'] != repos[i+1]['full_name']:
+    print "Deleting "+repos[i]['name']+" from disk..."
+    os.chdir(workdir)
+    if os.getcwd() != workdir:
+      raise EnvironmentError("Cannot change directory to: "+workdir)
+    shutil.rmtree(repos[i]['name'])
+
 def patchRepo(repo, upstream, cve, commits, gerrit_user, dryrun):
   print "Preparing Gerrit review branch "+cve+"-"+repo['branch']+"..."
   if subprocess.call("git branch "+cve+"-"+repo['branch']+" --track origin/"+repo['branch'], shell=True) != 0:
@@ -291,6 +300,7 @@ parser.add_argument('--branches', default='cm-14.1 lineage-15.0', help='Branches
 parser.add_argument('--update-reviewers', action='store_true', help='Add recent reviewers/approvers from Gerrit to reviewers in repos_extras.txt. Skips CVE processing.')
 parser.add_argument('--dryrun', action='store_true', help='Do NOT submit changes to Gerrit (and no updates to submitted.txt). Useful for testing how CVE definitions merge.')
 parser.add_argument('--verbose', action='store_true', help='Verbose output (in some places).')
+parser.add_argument('--autoclean', action='store_true', help='Delete downloaded repositories after submitting changes. Vulnerable repos will be downloaded multiple times (once per CVE). Useful for patching single CVE with limited diskspace.')
 
 args = parser.parse_args()
 branches = list(args.branches.split())
@@ -332,10 +342,10 @@ for cve, defs in defsAll.iteritems():
   repos = determineVulnerableRepos(reposFiltered, defs)
   reposToProcess = filter(lambda r: r['cve_status'] == 'VULNERABLE', repos)
   print "Vulnerable repos/branches to be patched: "+repr(len(reposToProcess))
-  if args.fix:
+  if args.fix or args.dryrun:
     gerrit_user = subprocess.check_output("git config --global --get review.review.lineageos.org.username", shell=True).strip()
     workdir = os.path.abspath(args.workdir)
-    for r in reposToProcess:
+    for i,r in enumerate(reposToProcess):
       if submitted.count({'cve': cve, 'repo': r['full_name'], 'branch': r['branch']}) > 0:
         print colors.YELLOW+"Already submitted "+cve+" for "+r['full_name']+" ("+r['branch']+")..."+colors.ENDC
         continue
@@ -351,4 +361,6 @@ for cve, defs in defsAll.iteritems():
           print colors.RED+"FAILURE!!!"+colors.ENDC+" Skipping "+r['full_name']+" for "+cve
           continue
         print colors.GREEN+"Submitted "+cve+" fix for "+r['full_name']+" ("+r['branch']+")..."+colors.ENDC
+      if args.autoclean:
+        autocleanRepo(i, reposToProcess, workdir)
 
