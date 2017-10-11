@@ -17,6 +17,7 @@ import shutil
 
 MAX_CACHE_SECONDS = 60*60*24*14
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
+READY_UPSTREAMS = list()
 
 class colors:
   BLUE = '\033[94m'
@@ -146,6 +147,12 @@ def absPathTo(file):
 def prepareRepo(repo, workdir, upstream):
   if not os.path.exists(workdir):
     os.makedirs(workdir)
+
+  upsrem,upspath = getCachedUpstream(upstream, workdir)
+  if upsrem == False:
+    print "Error caching upstream "+upstream
+    return False
+
   os.chdir(workdir)
   if os.getcwd() != workdir:
     return False
@@ -167,24 +174,49 @@ def prepareRepo(repo, workdir, upstream):
       f.write(chreq.content)
     os.chmod(".git/hooks/commit-msg", int('0775', 8))
 
-  upsrem = "ESK"+hashlib.sha1(upstream).hexdigest()
   remotes = subprocess.check_output("git remote -v", shell=True)
   if remotes.find(upsrem) == -1:
-    print "Adding Git upstream "+upsrem+" ("+upstream+")..."
-    if subprocess.call("git remote add "+upsrem+" "+upstream, shell=True) != 0:
+    print "Adding cached Git upstream "+upsrem+" ("+upstream+")..."
+    if subprocess.call("git remote add "+upsrem+" "+upspath, shell=True) != 0:
       return False
 
   print "Fetching Git repo "+repo['name']+"..."
   if subprocess.call("git fetch origin", shell=True) != 0:
     return False
-  print "Fetching Git upstream "+upsrem+" ("+upstream+")... This might take a while..."
+  print "Fetching cached Git upstream "+upsrem+" ("+upstream+")... This might take a while..."
   if subprocess.call("git fetch --quiet "+upsrem, shell=True) != 0:
     return False
 
   return True
 
+def getCachedUpstream(upstream, workdir):
+  global READY_UPSTREAMS
+  alias = "ESK"+hashlib.sha1(upstream).hexdigest()
+  cachepath = os.path.join(workdir, "upstreams", alias)
+
+  if READY_UPSTREAMS.count(alias) == 0:
+    print "Preparing Git mirror "+alias+" for "+upstream+"..."
+    if not os.path.exists(cachepath):
+      os.chdir(workdir)
+      if os.getcwd() != workdir:
+        return False,False
+      os.makedirs(cachepath)
+      print "Cloning upstream Git repo "+upstream+"..."
+      if subprocess.call("git clone --mirror "+upstream+" "+cachepath, shell=True) != 0:
+        return False,False
+    else:
+      os.chdir(cachepath)
+      if os.getcwd() != cachepath:
+        return False,False
+      print "Fetching upstream Git repo "+upstream+"..."
+      if subprocess.call("git fetch -p origin", shell=True) != 0:
+        return False,False
+
+    READY_UPSTREAMS.append(alias)
+  return alias,cachepath
+
 def autocleanRepo(index, repos, workdir):
-  if index+1 == len(repos) or repos[i]['full_name'] != repos[i+1]['full_name']:
+  if (index+1 == len(repos) or repos[i]['full_name'] != repos[i+1]['full_name']) and os.path.exists(os.path.join(workdir, repos[i]['name'])):
     print "Deleting "+repos[i]['name']+" from disk..."
     os.chdir(workdir)
     if os.getcwd() != workdir:
