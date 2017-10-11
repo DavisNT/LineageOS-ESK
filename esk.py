@@ -332,7 +332,7 @@ parser.add_argument('--branches', default='cm-14.1 lineage-15.0', help='Branches
 parser.add_argument('--update-reviewers', action='store_true', help='Add recent reviewers/approvers from Gerrit to reviewers in repos_extras.txt. Skips CVE processing.')
 parser.add_argument('--dryrun', action='store_true', help='Do NOT submit changes to Gerrit (and no updates to submitted.txt). Useful for testing how CVE definitions merge.')
 parser.add_argument('--verbose', action='store_true', help='Verbose output (in some places).')
-parser.add_argument('--autoclean', action='store_true', help='Delete downloaded repositories after submitting changes. Vulnerable repos will be downloaded multiple times (once per CVE). Useful for patching single CVE with limited diskspace.')
+parser.add_argument('--autoclean', action='store_true', help='Delete downloaded repositories after submitting changes. Vulnerable repos will be downloaded multiple times (once per CVE). Cached upstream repos will not be deleted. Useful for patching single CVE with limited diskspace.')
 
 args = parser.parse_args()
 branches = list(args.branches.split())
@@ -386,11 +386,11 @@ for cve, defs in defsAll.iteritems():
         if d['versions'].count(r['kernel_version']) == 0:
           continue
         if not prepareRepo(r, workdir, d['upstream']):
-          print colors.RED+"FAILURE!!!"+colors.ENDC+" Skipping "+r['full_name']+" for "+cve
+          print colors.RED+"FAILURE!!! Skipping "+r['full_name']+" for "+cve+colors.ENDC
           continue
         print "Repository prepared."
         if not patchRepo(r, d['upstream'], cve, d['commits'], gerrit_user, args.dryrun):
-          print colors.RED+"FAILURE!!!"+colors.ENDC+" Skipping "+r['full_name']+" for "+cve
+          print colors.RED+"FAILURE!!! Skipping "+r['full_name']+" for "+cve+colors.ENDC
           continue
         print colors.GREEN+"Submitted "+cve+" fix for "+r['full_name']+" ("+r['branch']+")..."+colors.ENDC
       if args.autoclean:
