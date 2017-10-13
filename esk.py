@@ -240,7 +240,7 @@ def autocleanRepo(index, repos, workdir):
       raise EnvironmentError("Cannot change directory to: "+workdir)
     shutil.rmtree(repos[i]['name'])
 
-def patchRepo(repo, upstream, cve, commits, gerrit_user, dryrun):
+def patchRepo(repo, upstream, cve, commits, gerrit_user, dryrun, skipreview):
   print "Preparing Gerrit review branch "+cve+"-"+repo['branch']+"..."
   if subprocess.call("git branch "+cve+"-"+repo['branch']+" --track origin/"+repo['branch'], shell=True) != 0:
     return False
@@ -260,12 +260,14 @@ def patchRepo(repo, upstream, cve, commits, gerrit_user, dryrun):
     if status != 0:
       return False
     print "Submitting change to Gerrit..."
-    reviewers = ""
-    if 'maintainers' in repo:
+    eparams = ""
+    if skipreview:
+      eparams += ",submit"
+    elif 'maintainers' in repo:
       for m in repo['maintainers']:
-        reviewers = reviewers+",r="+m
+        eparams += ",r="+m
     if not dryrun:
-      if subprocess.call("git push ssh://"+gerrit_user+"@review.lineageos.org:29418/"+repo['full_name']+".git HEAD:refs/for/"+repo['branch']+"%topic="+cve+reviewers, shell=True) != 0:
+      if subprocess.call("git push ssh://"+gerrit_user+"@review.lineageos.org:29418/"+repo['full_name']+".git HEAD:refs/for/"+repo['branch']+"%topic="+cve+eparams, shell=True) != 0:
         return False
     else:
       print colors.YELLOW+"DRYRUN! Nothing will be sent to Gerrit, submitted.txt not updated."+colors.ENDC
@@ -351,6 +353,7 @@ parser.add_argument('--workdir', default='repos', help='Directory to clone Git r
 parser.add_argument('--branches', default='cm-14.1 lineage-15.0', help='Branches to process (in addition to branches specified in repos_extras.txt).')
 parser.add_argument('--update-reviewers', action='store_true', help='Add recent reviewers/approvers from Gerrit to reviewers in repos_extras.txt. Skips CVE processing.')
 parser.add_argument('--dryrun', action='store_true', help='Do NOT submit changes to Gerrit (and no updates to submitted.txt). Useful for testing how CVE definitions merge.')
+parser.add_argument('--skipreview', action='store_true', help='Submit/merge the change inside Gerrit WITHOUT REVIEW. Requires Submit permission in Gerrit.')
 parser.add_argument('--verbose', action='store_true', help='Verbose output (in some places).')
 parser.add_argument('--autoclean', action='store_true', help='Delete downloaded repositories after submitting changes. Vulnerable repos will be downloaded multiple times (once per CVE). Cached upstream repos will not be deleted. Useful for patching single CVE with limited diskspace.')
 
@@ -396,6 +399,8 @@ for cve, defs in defsAll.iteritems():
   print "Vulnerable repos/branches to be patched: "+repr(len(reposToProcess))
   if args.fix or args.dryrun:
     gerrit_user = subprocess.check_output("git config --global --get review.review.lineageos.org.username", shell=True).strip()
+    if gerrit_user=="":
+      raise EnvironmentError("Git global setting review.review.lineageos.org.username not configured")
     workdir = os.path.abspath(args.workdir)
     for i,r in enumerate(reposToProcess):
       if submitted.count({'cve': cve, 'repo': r['full_name'], 'branch': r['branch']}) > 0:
@@ -409,7 +414,7 @@ for cve, defs in defsAll.iteritems():
           print colors.RED+"FAILURE!!! Skipping "+r['full_name']+" for "+cve+colors.ENDC
           continue
         print "Repository prepared."
-        if not patchRepo(r, d['upstream'], cve, d['commits'], gerrit_user, args.dryrun):
+        if not patchRepo(r, d['upstream'], cve, d['commits'], gerrit_user, args.dryrun, args.skipreview):
           print colors.RED+"FAILURE!!! Skipping "+r['full_name']+" for "+cve+colors.ENDC
           continue
         print colors.GREEN+"Submitted "+cve+" fix for "+r['full_name']+" ("+r['branch']+")..."+colors.ENDC
