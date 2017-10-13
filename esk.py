@@ -1,5 +1,21 @@
 #!/usr/bin/python2.7
 
+#    LineageOS Enthusiast's Security Kitchen
+#    Copyright (C) 2017 Davis Mosenkovs
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see https://www.gnu.org/licenses/
+
 import requests
 import csv
 import re
@@ -289,7 +305,10 @@ def updateReviewers():
       mreq = requests.get("https://review.lineageos.org/accounts/"+repr(mid)).content
       assert(mreq.startswith(")]}'"))
       m = json.loads(mreq[4:])
-      r['maintainers'].append(m['email'].encode('ascii','ignore'))
+      if 'username' in m:
+        r['maintainers'].append(m['username'].encode('ascii','ignore'))
+      else:
+        r['maintainers'].append(m['email'].encode('ascii','ignore'))
     r['maintainers'].sort()
     sys.stdout.write('.')
     sys.stdout.flush()
