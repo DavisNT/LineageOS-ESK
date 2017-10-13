@@ -228,6 +228,7 @@ def getCachedUpstream(upstream, workdir):
       if subprocess.call("git fetch -p origin", shell=True) != 0:
         return False,False
 
+    print "Git mirror ("+alias+") prepared."
     READY_UPSTREAMS.append(alias)
   return alias,cachepath
 

@@ -1,3 +1,5 @@
+# This file contains extra information for LineageOS repositories
+# Format: Repo_full_name Branches Reviewers/maintainers
 LineageOS/android_kernel_samsung_universal8890  jesec
 LineageOS/android_kernel_samsung_espresso10 cm-13.0 
 LineageOS/android_kernel_motorola_ghost cm-13.0 intervigil
