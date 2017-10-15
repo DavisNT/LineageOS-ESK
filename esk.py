@@ -84,7 +84,10 @@ def getReposAndBranches():
 
   return ret
 
-def addReposExtras(repos):
+def addReposExtras(repos, default_branches):
+  for r in repos:
+    r['include_branch'] = r['branch'] in default_branches
+
   extras = {}
   with open(absPathTo("repos_extras.txt"), "rb") as f:
     reader = csv.reader(f, delimiter=" ")
@@ -94,8 +97,25 @@ def addReposExtras(repos):
       for r in repos:
         if r['full_name'] == row[0]:
           r['maintainers'] = row[2].replace("OBFusCAAT", "@").split()
-          if r['branch'] in row[1].split():
-            r['include_branch'] = True
+          if row[1] == "":
+            # Not set (keep defaults)
+            pass
+          elif row[1] == "-":
+            # Disable repo
+            r['include_branch'] = False
+          elif row[1][0]=="+" or row[1][0]=="-":
+            # +/- mode
+            rbs = row[1].split()
+            for b in rbs:
+              assert(b[0]=="+" or b[0]=="-")
+              if r['branch'] == b[1:]:
+                r['include_branch'] = b[0]=="+"
+          else:
+            # Override mode
+            rbs = row[1].split()
+            for b in rbs:
+              assert(b[0]!="+" and b[0]!="-")
+            r['include_branch'] = r['branch'] in rbs
 
 def getSubmitted():
   ret = list()
@@ -285,12 +305,65 @@ def patchRepo(repo, upstream, cve, commits, gerrit_user, dryrun, skipreview):
 
   return True
 
-def updateReviewers():
-  print colors.BLUE+"Update reviewers from Gerrit."+colors.ENDC
+def getRepoKernels(repo_name, branch, cache):
+  kernels = set()
+  if repo_name.lower().find("kernel") != -1:
+    kernels.add(repo_name)
+
+  if not branch in cache:
+    cache[branch] = {}
+  if not repo_name in cache[branch]:
+    req = requests.get("https://raw.githubusercontent.com/LineageOS/"+repo_name+"/"+branch+"/lineage.dependencies")
+    if req.status_code == 200:
+      cache[branch][repo_name] = req.json()
+    else:
+      cache[branch][repo_name] = list()
+
+  for d in cache[branch][repo_name]:
+    kernels.update(getRepoKernels(d['repository'], branch, cache))
+
+  return kernels
+
+def updateExtras():
+  print colors.BLUE+"Update repos_extras.txt from LineageOS infrastructure."+colors.ENDC
   print ""
   print "Getting/reading repos and branches list..."
   reposAll = getReposAndBranches()
   repos = [g.next() for k,g in itertools.groupby(reposAll, lambda r: r['full_name'])]
+
+  print "Querying scheduled builds and deprecated kernels in GitHub CVE tracker... This might take a while..."
+  dks_json = requests.get("https://cve.lineageos.org/api/v1/kernels?deprecated=1").json()
+  devices_list = requests.get("https://raw.githubusercontent.com/LineageOS/lineageos_updater/master/devices.json").json()
+  device_depends = requests.get("https://raw.githubusercontent.com/LineageOS/lineageos_updater/master/device_deps.json").json()
+  build_targets = requests.get("https://raw.githubusercontent.com/LineageOS/hudson/master/lineage-build-targets").content
+  deprecated_kernels = [d['repo_name'].encode('ascii','ignore') for k,d in dks_json.iteritems()]
+  depends_cache = {}
+  for t in build_targets.split("\n"):
+    row = t.strip().split()
+    if len(row) == 0 or len(row[0]) == 0 or row[0][0] == '#':
+      continue
+    next(d for i, d in enumerate(devices_list) if d["model"] == row[0])['build_branch'] = row[2]
+  for device in devices_list:
+    if not 'build_branch' in device:
+      continue
+    kernels = set()
+    for r in device_depends[device['model']]:
+      kernels.update(getRepoKernels(r, device['build_branch'], depends_cache))
+    assert(len(kernels) == 1)
+    device['kernel'] = kernels.pop()
+    if device['kernel'] in deprecated_kernels:
+      deprecated_kernels.remove(device['kernel'])
+      if not VERBOSE:
+        print ""
+      print colors.RED+"Kernel ("+device['kernel']+") used for "+device['model']+" marked as deprecated in CVE tracker"+colors.ENDC
+      print "Please report it to LineageOS team!"
+    if VERBOSE:
+      print device['model']+" ("+device['oem']+" "+device['name']+")"+" kernel: "+device['kernel']
+    else:
+      sys.stdout.write('.')
+      sys.stdout.flush()
+
+  print ""
   print "Querying recent approvers in Gerrit... This might take a while..."
   for r in repos:
     chngreq = requests.get("https://review.lineageos.org/changes/?q=status:merged+project:"+r['full_name']+"&n=20&o=MESSAGES&o=LABELS").content
@@ -304,17 +377,22 @@ def updateReviewers():
       if 'Code-Review' in c['labels'] and 'approved' in c['labels']['Code-Review']:
         mids.add(c['labels']['Code-Review']['approved']['_account_id'])
     r['maintainers'] = list()
+    r['maintainer_emails'] = list()
     for mid in mids:
       mreq = requests.get("https://review.lineageos.org/accounts/"+repr(mid)).content
       assert(mreq.startswith(")]}'"))
       m = json.loads(mreq[4:])
       if 'username' in m:
         r['maintainers'].append(m['username'].encode('ascii','ignore'))
+        r['maintainer_emails'].append(m['email'].encode('ascii','ignore'))
       else:
         r['maintainers'].append(m['email'].encode('ascii','ignore'))
     r['maintainers'].sort()
-    sys.stdout.write('.')
-    sys.stdout.flush()
+    if VERBOSE:
+      print r['full_name']+" reviewers: "+" ".join(r['maintainers'])
+    else:
+      sys.stdout.write('.')
+      sys.stdout.flush()
 
   print ""
   print "Merging and updating file..."
@@ -323,6 +401,7 @@ def updateReviewers():
     reader = csv.reader(f, delimiter=" ")
     for row in reader:
       rows.append(row)
+
   for r in repos:
     if len(r['maintainers']) > 0:
       edited = False
@@ -333,9 +412,55 @@ def updateReviewers():
           edited = True
           mset = set(row[2].replace("OBFusCAAT", "@").split())
           mset.update(set(r['maintainers']))
+          mset.difference_update(set(r['maintainer_emails']))
           row[2] = " ".join(sorted(list(mset))).replace("@", "OBFusCAAT")
       if not edited:
         rows.append([r['full_name'], "", " ".join(r['maintainers']).replace("@", "OBFusCAAT")])
+    if r['name'] in deprecated_kernels:
+      edited = False
+      for row in rows:
+        if len(row) == 0 or len(row[0]) == 0 or row[0][0] == '#':
+          continue
+        if r['full_name'] == row[0]:
+          edited = True
+          row[1] = "-"
+      if not edited:
+        rows.append([r['full_name'], "-", ""])
+    bbranches = set()
+    for device in devices_list:
+      if 'build_branch' in device and r['name']==device['kernel']:
+        bbranches.add(device['build_branch'])
+    if len(bbranches) > 0:
+      edited = False
+      for row in rows:
+        if len(row) == 0 or len(row[0]) == 0 or row[0][0] == '#':
+          continue
+        if r['full_name'] == row[0]:
+          edited = True
+          if row[1]=="" or row[1]=="-":
+            # Not set or disabled repo
+            row[1] = "+"+" +".join(sorted(list(bbranches)))
+          elif row[1][0]=="+" or row[1][0]=="-":
+            # +/- mode
+            rbs = row[1].split()
+            for b in rbs:
+              assert(b[0]=="+" or b[0]=="-")
+            for b in bbranches:
+              while "-"+b in rbs:
+                rbs.remove("-"+b)
+              if not "+"+b in rbs:
+                rbs.append("+"+b)
+            row[1] = " ".join(sorted(rbs))
+          else:
+            # Override mode
+            rbs = row[1].split()
+            for b in rbs:
+              assert(b[0]!="+" and b[0]!="-")
+            row[1] = " ".join(sorted(list(bbranches|set(rbs))))
+      if not edited:
+        rows.append([r['full_name'], "+"+" +".join(sorted(list(bbranches))), ""])
+
+  shutil.copyfile(absPathTo("repos_extras.txt"), absPathTo("repos_extras.txt.bak"))
   with open(absPathTo("repos_extras.txt"), "wb") as f:
     writer = csv.writer(f, delimiter=" ", lineterminator=os.linesep, quoting=csv.QUOTE_MINIMAL)
     for row in rows:
@@ -351,29 +476,29 @@ parser.add_argument('--fix', action='store_true', help='Submit fix(es) for vulne
 parser.add_argument('--defs', type=argparse.FileType('r'), default='cve_defs.txt', help='File with CVE definitions (default cve_defs.txt).')
 parser.add_argument('--workdir', default='repos', help='Directory to clone Git repositories into. Must NOT be shared with Android build dir.')
 parser.add_argument('--branches', default='cm-14.1 lineage-15.0', help='Branches to process (in addition to branches specified in repos_extras.txt).')
-parser.add_argument('--update-reviewers', action='store_true', help='Add recent reviewers/approvers from Gerrit to reviewers in repos_extras.txt. Skips CVE processing.')
 parser.add_argument('--dryrun', action='store_true', help='Do NOT submit changes to Gerrit (and no updates to submitted.txt). Useful for testing how CVE definitions merge.')
 parser.add_argument('--skipreview', action='store_true', help='Submit/merge the change inside Gerrit WITHOUT REVIEW. Requires Submit permission in Gerrit.')
 parser.add_argument('--verbose', action='store_true', help='Verbose output (in some places).')
 parser.add_argument('--autoclean', action='store_true', help='Delete downloaded repositories after submitting changes. Vulnerable repos will be downloaded multiple times (once per CVE). Cached upstream repos will not be deleted. Useful for patching single CVE with limited diskspace.')
+parser.add_argument('--update-repos-extras', action='store_true', help='Update repos_extras.txt (add reviewers and branches) from LineageOS infrastructure. Skips CVE processing.')
 
 args = parser.parse_args()
-branches = list(args.branches.split())
+branches = args.branches.split()
 VERBOSE = args.verbose
 
 # Call update reviewers
-if args.update_reviewers:
-  updateReviewers()
+if args.update_repos_extras:
+  updateExtras()
 
 # Prepare CVE independent data
 print "Reading definitions..."
 defsAll = getDefs(args.defs)
 print "Getting/reading repos and branches list..."
 reposAll = getReposAndBranches()
-addReposExtras(reposAll)
+addReposExtras(reposAll, branches)
 submitted = getSubmitted()
 
-reposFiltered = filter(lambda r: branches.count(r['branch']) == 1 or 'include_branch' in r, reposAll)
+reposFiltered = filter(lambda r: r['include_branch'], reposAll)
 
 print "Total repos/branches: "+repr(len(reposAll))
 print "Repos/branches to be processed: "+repr(len(reposFiltered))
