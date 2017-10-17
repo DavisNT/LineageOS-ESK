@@ -267,18 +267,24 @@ def patchRepo(repo, upstream, cve, commits, gerrit_user, dryrun, skipreview):
   if subprocess.call("git checkout "+cve+"-"+repo['branch'], shell=True) != 0:
     return False
 
-  for commit in commits:
+  for commitstr in commits:
+    commit = commitstr
+    update_cmsg = True
+    if commitstr[0].upper() == "P":
+      commit = commitstr[1:]
+      update_cmsg = False
     print "Cherry-picking "+commit+"..."
     if subprocess.call("git cherry-pick "+commit, shell=True) != 0:
       return False
-    print "Updating commit message..."
-    os.environ['EDITOR'] = absPathTo("edit_commit_message.py")
-    os.environ['ESK_COMMIT_NOTE'] = "upstream "+commit+" from\n"+upstream
-    status = subprocess.call("git commit --amend", shell=True)
-    os.environ['EDITOR'] = "nano"
-    os.environ['ESK_COMMIT_NOTE'] = ""
-    if status != 0:
-      return False
+    if update_cmsg:
+      print "Updating commit message..."
+      os.environ['EDITOR'] = absPathTo("edit_commit_message.py")
+      os.environ['ESK_COMMIT_NOTE'] = "upstream "+commit+" from\n"+upstream
+      status = subprocess.call("git commit --amend", shell=True)
+      os.environ['EDITOR'] = "nano"
+      os.environ['ESK_COMMIT_NOTE'] = ""
+      if status != 0:
+        return False
     print "Submitting change to Gerrit..."
     eparams = ""
     if skipreview:
