@@ -3,11 +3,11 @@
 LineageOS/android_kernel_samsung_universal8890 +cm-14.1 jesec
 LineageOS/android_kernel_samsung_espresso10 - 
 LineageOS/android_kernel_motorola_ghost cm-13.0 intervigil
-LineageOS/android_kernel_samsung_ks01lte cm-13.0 solk
-LineageOS/android_kernel_samsung_tuna cm-13.0 Ziyan
-LineageOS/android_kernel_samsung_manta cm-13.0 "Tortel cvxda"
-LineageOS/android_kernel_samsung_mondrianwifi cm-13.0 crpalmer
-LineageOS/android_kernel_nvidia_roth cm-13.0 webgeek1234
+LineageOS/android_kernel_samsung_ks01lte +cm-13.0 solk
+LineageOS/android_kernel_samsung_tuna +cm-13.0 Ziyan
+LineageOS/android_kernel_samsung_manta +cm-13.0 "Tortel cvxda"
+LineageOS/android_kernel_samsung_mondrianwifi +cm-13.0 crpalmer
+LineageOS/android_kernel_nvidia_roth +cm-13.0 -cm-14.1 webgeek1234
 LineageOS/android_kernel_xiaomi_msm8996 +cm-14.1 "bgcngm h2o64 luca020400"
 LineageOS/android_kernel_cyanogen_msm8916 +cm-14.1 "mikeioannina tdm"
 LineageOS/android_kernel_oneplus_msm8996 +cm-14.1 dianlujitao
@@ -44,7 +44,7 @@ LineageOS/android_kernel_lge_msm8974 +cm-14.1 "Kapricornus invisiblek"
 LineageOS/android_kernel_samsung_msm8974 +cm-14.1 haggertk
 LineageOS/android_kernel_asus_msm8916 +cm-14.1 luk1337
 LineageOS/android_kernel_asus_moorefield +cm-14.1 jrior001
-LineageOS/android_kernel_oneplus_msm8998 +cm-14.1 "alexevisceration codeworkx linuxx"
+LineageOS/android_kernel_oneplus_msm8998 +cm-14.1 -lineage-15.0 "alexevisceration codeworkx linuxx"
 LineageOS/android_kernel_google_marlin - "intervigil invisiblek"
 LineageOS/android_kernel_motorola_msm8974 +cm-14.1 "Tortel crpalmer invisiblek"
 LineageOS/android_kernel_samsung_trlte - "Ciwrly fattire gekkehenkie11 intervigil nivron slayher"
