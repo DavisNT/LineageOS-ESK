@@ -11,7 +11,7 @@ Most of Linux kernel security issues/vulnerabilities affect Android as well. To 
 repository of the kernel that specific device uses. Aim of **LineageOS Enthusiast's Security Kitchen** is to ease process of detecting which 
 repositories need the security (and possibly other) fixes and merging commits into those repositories (as automatically as possible).
 
-**LineageOS Enthusiast's Security Kitchen** gets list of [LineageOS kernel repositories](https://github.com/LineageOS?q=kernel) from 
+**LineageOS Enthusiast's Security Kitchen** (ESK) gets list of [LineageOS kernel repositories](https://github.com/LineageOS?q=kernel) from 
 GitHub, uses a text (space separated CSV) file with regular expressions (to determine whether a security issue has been already fixed 
 in specific kernel repository) and information from where to take the fix (upstream repository URL and commit SHA1-s), and automatically 
 downloads the repository, merges the fix and uploads it to [LineageOS code review system](https://review.lineageos.org).
@@ -24,7 +24,29 @@ The file with CVE definitions (CVE number/label, kernel versions, file name to c
 vulnerable and fixed code versions, upstream repository URL, and SHA1(-s) of commit(s) fixing the issue) is named 
 [cve_defs.txt](https://github.com/DavisNT/LineageOS-ESK/blob/master/cve_defs.txt).
 
+## Prerequisites and setup
+
+Prerequisites:
+* Linux system (the script is **not** tested on Windows/MacOS).
+* Python 2.7 (run `python --version` to check). Python 3.0 should cause issues (at least due to `raw_input()`).
+* HTTP credentials for GitHub access (if 2FA is enabled [Personal access token](https://github.com/settings/tokens) must be used instead of password).
+* Access to LineageOS gerrit must be set up as described [here](https://wiki.lineageos.org/submitting-patch-howto.html#initial-setup).
+* At least a few GB free diskspace. THe amount of required diskspace depends on count of repos cloned/patched. For saving diskspace `--autoclean` command-line option can be used.
+
+## Integration with repo (very limited)
+
+Integration with Android build system `repo` tool is **very limited**. 
+This tool clones repositories outside `~/android/lineage` directory and does **not** use/call `repo` tool. This is architectural decision to be 
+able to work on different branches and delete cloned repositories after submitting changes to Gerrit.
+
+However it is possible to clone/update ESK by `repo sync`. To do this add the below lines to `~/android/lineage/.repo/local_manifests/roomservice.xml` (inside `manifest` section):
+
+    <!-- LineageOS Enthusiast's Security Kitchen -->
+    <project name="DavisNT/LineageOS-ESK" path="lineage/esk" remote="github" revision="master" />
+
 ## Work In Process
+
+This project is in WIP/alpha stage (more feature-wise, not stability/bug-wise).
 
 ## Notices
 
