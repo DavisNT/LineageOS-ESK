@@ -1,30 +1,30 @@
 # This file contains extra information for LineageOS repositories
 # Format: Repo_full_name Branches Reviewers/maintainers
 LineageOS/android_kernel_samsung_universal8890 +cm-14.1 jesec
-LineageOS/android_kernel_samsung_espresso10 - 
-LineageOS/android_kernel_motorola_ghost cm-13.0 intervigil
+LineageOS/android_kernel_samsung_espresso10 - Android-Andi
+LineageOS/android_kernel_motorola_ghost - intervigil
 LineageOS/android_kernel_samsung_ks01lte +cm-13.0 solk
 LineageOS/android_kernel_samsung_tuna +cm-13.0 Ziyan
 LineageOS/android_kernel_samsung_manta +cm-13.0 "Tortel cvxda"
 LineageOS/android_kernel_samsung_mondrianwifi +cm-13.0 crpalmer
-LineageOS/android_kernel_nvidia_roth +cm-13.0 -cm-14.1 webgeek1234
-LineageOS/android_kernel_xiaomi_msm8996 +cm-14.1 "bgcngm h2o64 luca020400"
-LineageOS/android_kernel_cyanogen_msm8916 +cm-14.1 "mikeioannina tdm"
+LineageOS/android_kernel_nvidia_roth "+cm-13.0 -cm-14.1" webgeek1234
+LineageOS/android_kernel_xiaomi_msm8996 +cm-14.1 "bgcngm blunden h2o64 luca020400"
+LineageOS/android_kernel_cyanogen_msm8916  "mikeioannina tdm"
 LineageOS/android_kernel_oneplus_msm8996 +cm-14.1 dianlujitao
-LineageOS/android_kernel_xiaomi_msm8956 +cm-14.1 TheStrix
+LineageOS/android_kernel_xiaomi_msm8956 +cm-14.1 "TheStrix luca020400"
 LineageOS/android_kernel_lge_hammerhead +cm-14.1 razorloves
 LineageOS/android_kernel_oneplus_msm8974 +cm-14.1 "forkbomb linuxx mikeioannina tdm"
 LineageOS/android_kernel_samsung_klte - haggertk
-LineageOS/android_kernel_samsung_smdk4412 +cm-14.1 "filiprrs forkbomb rinando"
-LineageOS/android_kernel_motorola_msm8916 +cm-14.1 Alberto97
+LineageOS/android_kernel_samsung_smdk4412 +cm-14.1 "PoisonNinja RGIB filiprrs forkbomb intervigil rinando"
+LineageOS/android_kernel_motorola_msm8916  Alberto97
 LineageOS/android_kernel_samsung_jf +cm-14.1 invisiblek
-LineageOS/android_kernel_wingtech_msm8916 +cm-14.1 nicknitewolf
-LineageOS/android_kernel_huawei_angler +cm-14.1 "razorloves samm"
+LineageOS/android_kernel_wingtech_msm8916  nicknitewolf
+LineageOS/android_kernel_huawei_angler +cm-14.1 "Ciwrly razorloves roman samm"
 LineageOS/android_kernel_motorola_msm8226 +cm-14.1 GabrieleM
 LineageOS/android_kernel_huawei_kiwi +cm-14.1 BadDaemon
-LineageOS/android_kernel_lge_bullhead +cm-14.1 razorloves
-LineageOS/android_kernel_leeco_msm8996 +cm-14.1 "Tortel codeworkx"
-LineageOS/android_kernel_oneplus_msm8994 +cm-14.1 OzzysCmAcc
+LineageOS/android_kernel_lge_bullhead +cm-14.1 "Ciwrly kmok razorloves smertz"
+LineageOS/android_kernel_leeco_msm8996 +cm-14.1 "Tortel codeworkx jrior001"
+LineageOS/android_kernel_oneplus_msm8994  OzzysCmAcc
 LineageOS/android_kernel_xiaomi_msm8953 +cm-14.1 Abhishek
 LineageOS/android_kernel_zte_msm8996 +cm-14.1 tdm
 LineageOS/android_kernel_xiaomi_cancro +cm-14.1 linuxx
@@ -33,31 +33,31 @@ LineageOS/android_kernel_leeco_msm8976 +cm-14.1 codeworkx
 LineageOS/android_kernel_lge_msm8996 +cm-14.1 "Rashed x86cpu"
 LineageOS/android_kernel_moto_shamu +cm-14.1 "Elektroschmock razorloves"
 LineageOS/android_kernel_google_msm +cm-14.1 "flex_1911 mccreary"
-LineageOS/android_kernel_lge_g3 +cm-14.1 Kasual
-LineageOS/android_kernel_xiaomi_msm8916 +cm-14.1 Anik1199
+LineageOS/android_kernel_lge_g3 +cm-14.1 "Kasual invisiblek"
+LineageOS/android_kernel_xiaomi_msm8916  Anik1199
 LineageOS/android_kernel_oneplus_onyx +cm-14.1 ashwin007
 LineageOS/android_kernel_cyanogen_mt6735 - "defer rmcc"
-LineageOS/android_kernel_htc_msm8974 +cm-14.1 bgcngm
+LineageOS/android_kernel_htc_msm8974 +cm-14.1 "bgcngm invisiblek"
 LineageOS/android_kernel_htc_msm8996 +cm-14.1 "RaymanFX crpalmer"
 LineageOS/android_kernel_lge_msm8226 +cm-14.1 "MobiusM vasy"
 LineageOS/android_kernel_lge_msm8974 +cm-14.1 "Kapricornus invisiblek"
 LineageOS/android_kernel_samsung_msm8974 +cm-14.1 haggertk
-LineageOS/android_kernel_asus_msm8916 +cm-14.1 luk1337
+LineageOS/android_kernel_asus_msm8916  "luca020400 luk1337"
 LineageOS/android_kernel_asus_moorefield +cm-14.1 jrior001
-LineageOS/android_kernel_oneplus_msm8998 +cm-14.1 -lineage-15.0 "alexevisceration codeworkx linuxx"
+LineageOS/android_kernel_oneplus_msm8998 "+cm-14.1 -lineage-15.0" "alexevisceration codeworkx linuxx"
 LineageOS/android_kernel_google_marlin - "intervigil invisiblek"
 LineageOS/android_kernel_motorola_msm8974 +cm-14.1 "Tortel crpalmer invisiblek"
 LineageOS/android_kernel_samsung_trlte - "Ciwrly fattire gekkehenkie11 intervigil nivron slayher"
 LineageOS/android_kernel_sony_msm8974  tomascus
 LineageOS/android_kernel_samsung_exynos7420 - shooter
-LineageOS/android_kernel_htc_flounder +cm-14.1 "Ciwrly bgcngm hashbang173 razorloves"
+LineageOS/android_kernel_htc_flounder +cm-14.1 "Ciwrly bgcngm hashbang173 razorloves simonsickle"
 LineageOS/android_kernel_samsung_hlte - haggertk
 LineageOS/android_kernel_cyanogen_msm8974 +cm-14.1 "ashwin007 shenki"
-LineageOS/android_kernel_huawei_msm8916 +cm-14.1 "Blefish dianlujitao"
-LineageOS/android_kernel_sony_msm8994 +cm-14.1 olivier
+LineageOS/android_kernel_huawei_msm8916  "Blefish dianlujitao"
+LineageOS/android_kernel_sony_msm8994  olivier
 LineageOS/android_kernel_sony_apq8064 +cm-14.1 "CyberWalkMaN daedroza"
 LineageOS/android_kernel_xiaomi_armani +cm-14.1 fefifofum
-LineageOS/android_kernel_samsung_exynos5410 - intervigil
+LineageOS/android_kernel_samsung_exynos5410 - "Alberto96 intervigil"
 LineageOS/android_kernel_nextbit_msm8992 +cm-14.1 "crpalmer javelinanddart8660 mikeioannina"
 LineageOS/android_kernel_samsung_msm8976 +cm-14.1 "luca020400 luk1337"
 LineageOS/android_kernel_motorola_msm8953 +cm-14.1 Alberto97
@@ -67,7 +67,7 @@ LineageOS/android_kernel_samsung_apq8084 +cm-14.1 cvxda
 LineageOS/android_kernel_google_seed +cm-14.1 arvinquilao
 LineageOS/lge-kernel-mako +cm-14.1 rmccask
 LineageOS/android_kernel_motorola_msm8992 +cm-14.1 "chrmhoffmann invisiblek"
-LineageOS/android_kernel_asus_grouper  harryyoud
+LineageOS/android_kernel_asus_grouper  "Thoemy harryyoud"
 LineageOS/android_kernel_sony_msm8x27 - AdrianDC
 LineageOS/android_kernel_motorola_titan - intervigil
 LineageOS/android_kernel_samsung_msm8930-common +cm-14.1 arco
@@ -75,45 +75,45 @@ LineageOS/android_kernel_lge_msm8992 +cm-14.1 "codeworkx genesixxbf3"
 LineageOS/android_kernel_motorola_msm8610 +cm-14.1 sultanqasim
 LineageOS/android_kernel_xiaomi_msm8992 +cm-14.1 Demon000
 LineageOS/android_kernel_samsung_k3gxx +cm-14.1 "aarani tincho5588"
-LineageOS/android_kernel_bq_msm8939 +cm-14.1 "eloimuns kra1o5 michael.stucki"
+LineageOS/android_kernel_bq_msm8939 +cm-14.1 "cmorlok eloimuns kra1o5 michael.stucki uberlaggydarwin"
 LineageOS/android_kernel_sony_msm8x60 +cm-14.1 AdrianDC
 LineageOS/android_kernel_oppo_msm8939 +cm-14.1 "Ciwrly maniac103 mikeioannina"
-LineageOS/android_kernel_bq_msm8937  uberlaggydarwin
+LineageOS/android_kernel_bq_msm8937  "eloimuns uberlaggydarwin"
 LineageOS/android_kernel_samsung_exynos5420 +cm-14.1 "DarkExistence deadman96385 tincho5588 zakooz"
 LineageOS/android_kernel_lge_v4xx +cm-14.1 "invisiblek jpjust"
-LineageOS/android_kernel_htc_msm8994 +cm-14.1 "Flyhalf205 Rashed invisiblek"
+LineageOS/android_kernel_htc_msm8994  "Flyhalf205 Rashed intervigil invisiblek"
 LineageOS/android_kernel_xiaomi_ferrari - Rohanpurohit
-LineageOS/android_kernel_lenovo_msm8916 +cm-14.1 "daniel.stuart14 shr3ps"
+LineageOS/android_kernel_lenovo_msm8916  "daniel.stuart14 shr3ps"
 LineageOS/android_kernel_amazon_hdx-common - hashcode0f
-LineageOS/android_kernel_cyanogen_msm8994 - "Ciwrly javelinanddart8660 jwagantall"
+LineageOS/android_kernel_cyanogen_msm8994 - "Ciwrly javelinanddart8660 jwagantall smertz"
 LineageOS/android_kernel_samsung_trelte - RaymanFX
 LineageOS/android_kernel_asus_fugu - "dhackerdvm hharte invisiblek"
 LineageOS/android_kernel_samsung_gts2 +cm-14.1 RaymanFX
 LineageOS/android_kernel_samsung_s3ve3g - n1kolaa
-LineageOS/android_kernel_samsung_msm8916 +cm-14.1 "minz vince2678"
+LineageOS/android_kernel_samsung_msm8916  "minz vince2678"
 LineageOS/android_kernel_lenovo_msm8953  mikeioannina
-LineageOS/android_kernel_qcom_msm8994  mikeioannina
+LineageOS/android_kernel_qcom_msm8994 +cm-14.1 mikeioannina
 LineageOS/android_kernel_mediatek_sprout - varun.chitre15
 LineageOS/android_kernel_google_shamrock - Asderdd
-LineageOS/android_kernel_sony_msm - "Kali cdesai"
-LineageOS/android_kernel_qcom_msm8916  "mikeioannina tdm"
+LineageOS/android_kernel_sony_msm - "Kali adfad666 cdesai"
+LineageOS/android_kernel_qcom_msm8916 +cm-14.1 "mikeioannina tdm"
 LineageOS/android_kernel_huawei_msm8928 - mdmower
 LineageOS/android_kernel_samsung_lt03lte +cm-14.1 "Rashed jacob.whatley91"
 LineageOS/android_kernel_zte_msm8994 - dianlujitao
 LineageOS/android_kernel_bq_msm8976 +cm-14.1 kra1o5
 LineageOS/android_kernel_oppo_msm8974 +cm-14.1 mikeioannina
-LineageOS/android_kernel_bq_msm8916 - mmarado
+LineageOS/android_kernel_bq_msm8916 - "jwagantall mmarado"
 LineageOS/android_kernel_lenovo_msm8974 +cm-14.1 Electry
 LineageOS/android_kernel_motorola_msm8996 +cm-14.1 Vache
 LineageOS/android_kernel_asus_Z00D +cm-14.1 flex_1911
 LineageOS/android_kernel_fairphone_msm8974  chrmhoffmann
 LineageOS/android_kernel_motorola_msm8960-common +cm-14.1 "mccreary nadlabak"
-LineageOS/cm-kernel  "Kali rmcc"
+LineageOS/cm-kernel  "Kali cyanogen rmcc"
 LineageOS/android_kernel_motorola_apq8084 - "Ciwrly skrilax"
-LineageOS/htc-kernel-msm7x30 - "Kali rmcc"
+LineageOS/htc-kernel-msm7x30 - "Kali defer rmcc"
 LineageOS/semc-kernel-msm7x30 - jerpelea
 LineageOS/lge-kernel-iproj - rmcc
-LineageOS/hp-kernel-tenderloin - jcsullins
+LineageOS/hp-kernel-tenderloin - "dalingrin jcsullins"
 LineageOS/lge-kernel-msm7x30 - rmcc
 LineageOS/sony-kernel-msm8960 - "Kali codeworkx jerpelea"
 LineageOS/lge-kernel-star - rmcc
@@ -134,14 +134,14 @@ LineageOS/android_kernel_samsung_epicmtd - bbelos
 LineageOS/android_kernel_google_dragon +cm-14.1 followmsi
 LineageOS/android_kernel_sony_flamingo - "adfad666 cdesai"
 LineageOS/android_kernel_nvidia_shieldtablet - webgeek1234
-LineageOS/android_kernel_samsung_victory - "Tortel UberPinguin mkasick noobnl"
-LineageOS/android_kernel_htc_endeavoru - Thoemy
+LineageOS/android_kernel_samsung_victory - "Tortel UberPinguin mkasick noobnl wtogami"
+LineageOS/android_kernel_htc_endeavoru - "Thoemy bekit"
 LineageOS/android_kernel_samsung_klimtwifi - deadman96385
-LineageOS/android_kernel_samsung_crespo - "bekit klusark"
+LineageOS/android_kernel_samsung_crespo - "bekit calimochoazucarado cyanogen jeagoss klusark"
 LineageOS/android_kernel_bn_acclaim - chrmhoffmann
 LineageOS/android_kernel_bn_omap - "green hashcode0f"
 LineageOS/android_kernel_nvidia_shield +cm-14.1 webgeek1234
-LineageOS/android_kernel_samsung_aries - pawitp
+LineageOS/android_kernel_samsung_aries - "cdesai humberos pawitp"
 LineageOS/android_kernel_toshiba_betelgeuse - Artem
 LineageOS/android_kernel_motorola_omap4-common +cm-14.1 gernoth
 LineageOS/android_kernel_sony_tianchi - cdesai
@@ -161,12 +161,12 @@ LineageOS/android_kernel_asus_tf701t - pershoot
 LineageOS/android_kernel_sony_msm8930 +cm-14.1 "AdrianDC corphish"
 LineageOS/android_kernel_asus_P024 +cm-14.1 vasy
 LineageOS/android_kernel_samsung_d2 +cm-14.1 "invisiblek javelinanddart8660"
-LineageOS/android_kernel_samsung_p1 - cdesai
+LineageOS/android_kernel_samsung_p1 - "cdesai humberos jt1134"
 LineageOS/android_kernel_ti_omap4 +cm-13.0 Android-Andi
 LineageOS/android_kernel_lge_v500 +cm-14.1 "fefifofum invisiblek"
 LineageOS/android_kernel_lge_msm8952 +cm-14.1 "Rashed harryyoud"
 LineageOS/android_kernel_sony_msm8974pro - "Kali cdesai"
-LineageOS/android_kernel_huawei_msm8226 - Lloir
+LineageOS/android_kernel_huawei_msm8226 - "Lloir Thoemy"
 LineageOS/android_kernel_asus_tf300t - chrmhoffmann
 LineageOS/android_kernel_samsung_smdk4210 - codeworkx
 LineageOS/android_kernel_yu_msm8916 - "bekit cdesai intervigil perley"
@@ -175,15 +175,15 @@ LineageOS/android_kernel_asus_tf101 - "Bumble-Bee rayman"
 LineageOS/android_kernel_sony_msm7x27a - jerpelea
 LineageOS/android_kernel_samsung_t1 - "Ciwrly codeworkx"
 LineageOS/android_kernel_qcom_msm8996  "mikeioannina smertz"
-LineageOS/android_kernel_ark_msm8916 +cm-14.1 lolmaxlik
+LineageOS/android_kernel_ark_msm8916  lolmaxlik
 LineageOS/android_kernel_amazon_bowser-common - hashcode0f
-LineageOS/android_kernel_samsung_galaxytab-cdma - jt1134
+LineageOS/android_kernel_samsung_galaxytab-cdma - "cdesai humberos jt1134"
 LineageOS/android_kernel_amazon_otter-common - "fuzz hashcode0f"
 LineageOS/android_kernel_acer_t20-common - "randomblame waydownsouth"
-LineageOS/android_kernel_samsung_msm8660-common - "Ciwrly UberPinguin carvsdriver cyanogen dferg"
-LineageOS/android_kernel_motorola_msm8960dt-common - "invisiblek nadlabak"
+LineageOS/android_kernel_samsung_msm8660-common - "Ciwrly UberPinguin carvsdriver cyanogen dferg mikeyman77"
+LineageOS/android_kernel_motorola_msm8960dt-common - "epinter invisiblek nadlabak"
 LineageOS/android_vendor_qcom_opensource_kernel-tests_mm-audio  cyanogen
-LineageOS/android_kernel_samsung_noblelte - 
+LineageOS/android_kernel_samsung_noblelte - RaymanFX
 LineageOS/android_kernel_nubia_msm8996 - 
 LineageOS/htc-kernel-espresso - 
 LineageOS/lge-kernel-omap4 - 
@@ -208,3 +208,6 @@ LineageOS/android_kernel_motorola_omap4-kexec-common -
 LineageOS/android_kernel_sony_msm7x27a-legacy - 
 LineageOS/android_kernel_sony_mam7x27a-legacy - 
 LineageOS/android_kernel_samsung_msm8660-q1 - 
+LineageOS/android_kernel_lge_msm8916  khode_erfan
+LineageOS/android_kernel_samsung_n1 - "Adam77Root tpruvot"
+LineageOS/android_kernel_lge_v909 - "ChiefzReloaded dasunsrule32 jannau"
