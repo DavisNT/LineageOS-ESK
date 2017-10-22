@@ -345,6 +345,15 @@ def getRepoKernels(repo_name, branch, cache):
 
   return kernels
 
+def transformQcomKernels(devices_list):
+  for device in devices_list:
+    if not 'kernel' in device:
+      continue
+    if device['kernel'].endswith("_msm8994"):
+      device['kernel'] = "android_kernel_qcom_msm8994"
+    if device['kernel'].endswith("_msm8916"):
+      device['kernel'] = "android_kernel_qcom_msm8916"
+
 def updateExtras():
   print colors.BLUE+"Update repos_extras.txt from LineageOS infrastructure."+colors.ENDC
   print ""
@@ -367,6 +376,12 @@ def updateExtras():
   for device in devices_list:
     if not 'build_branch' in device:
       continue
+    if not device['model'] in device_depends:
+      if not VERBOSE:
+        print ""
+      print colors.RED+"Cannot find kernel for "+device['model']+". Kernel for this device will not be added to repos_extras.txt"+colors.ENDC
+      print "Please wait for next Regenerate device dependency mappings"
+      continue
     kernels = set()
     for r in device_depends[device['model']]:
       kernels.update(getRepoKernels(r, device['build_branch'], depends_cache))
@@ -383,11 +398,12 @@ def updateExtras():
     else:
       sys.stdout.write('.')
       sys.stdout.flush()
+  transformQcomKernels(devices_list)
 
   print ""
   print "Querying recent approvers in Gerrit... This might take a while..."
   for r in repos:
-    chngreq = retryHttpGet("https://review.lineageos.org/changes/?q=status:merged+project:"+r['full_name']+"&n=20&o=MESSAGES&o=LABELS").content
+    chngreq = retryHttpGet("https://review.lineageos.org/changes/?q=status:merged+project:"+r['full_name']+"&n=50&o=MESSAGES&o=LABELS").content
     assert(chngreq.startswith(")]}'"))
     chngs = json.loads(chngreq[4:])
     mids = set()
@@ -449,7 +465,7 @@ def updateExtras():
         rows.append([r['full_name'], "-", ""])
     bbranches = set()
     for device in devices_list:
-      if 'build_branch' in device and r['name']==device['kernel']:
+      if 'build_branch' in device and 'kernel' in device and r['name']==device['kernel']:
         bbranches.add(device['build_branch'])
     if len(bbranches) > 0:
       edited = False
