@@ -42,6 +42,18 @@ class colors:
   RED = '\033[91m'
   ENDC = '\033[0m'
 
+
+def retryHttpGet(url, auth=False, maxtries = 5):
+  r = requests.get(url, auth=auth)
+  curr = 1
+  while r.status_code!=200 and r.status_code!=404 and curr < maxtries:
+    time.sleep(pow(2, curr-1))
+    r = requests.get(url, auth=auth)
+    curr += 1
+  if r.status_code!=200 and r.status_code!=404:
+    raise IOError("Bad HTTP response code", url, r.status_code)
+  return r
+
 def getReposAndBranches():
   if os.path.isfile(absPathTo("repos.cache")) and time.time()-os.path.getmtime(absPathTo("repos.cache"))<MAX_CACHE_SECONDS:
     with open(absPathTo("repos.cache"), "rb") as f:
@@ -61,7 +73,7 @@ def getReposAndBranches():
   kvexp = re.compile("^VERSION\s*=\s*(\d+)\s*$", re.MULTILINE)
   kplexp = re.compile("^PATCHLEVEL\s*=\s*(\d+)\s*$", re.MULTILINE)
   while True:
-    s = requests.get("https://api.github.com/search/repositories?q=user:LineageOS+kernel+in:name&per_page=100&page="+repr(page), auth=auth).json()
+    s = retryHttpGet("https://api.github.com/search/repositories?q=user:LineageOS+kernel+in:name&per_page=100&page="+repr(page), auth=auth).json()
     repos.extend(s['items'])
     if len(repos) == s['total_count']:
       break
@@ -69,9 +81,9 @@ def getReposAndBranches():
   ret = list()
   for repo in repos:
     print "Getting branches and kernel versions for "+repo['full_name']+"..."
-    branches = requests.get(repo['branches_url'].replace("{/branch}", "")+"?per_page=100", auth=auth).json()
+    branches = retryHttpGet(repo['branches_url'].replace("{/branch}", "")+"?per_page=100", auth=auth).json()
     for branch in branches:
-      mfs = requests.get("https://raw.githubusercontent.com/"+repo['full_name']+"/"+branch['name']+"/Makefile").content
+      mfs = retryHttpGet("https://raw.githubusercontent.com/"+repo['full_name']+"/"+branch['name']+"/Makefile").content
       kvm = kvexp.search(mfs)
       kplm = kplexp.search(mfs)
       kversion = 'UNKNOWN'
@@ -156,7 +168,7 @@ def determineVulnerableRepos(repos, defs):
     for d in defs:
       if d['versions'].count(repo['kernel_version']) == 0:
         continue
-      s = requests.get("https://raw.githubusercontent.com/"+repo['full_name']+"/"+repo['branch']+"/"+d['file'])
+      s = retryHttpGet("https://raw.githubusercontent.com/"+repo['full_name']+"/"+repo['branch']+"/"+d['file'])
       if s.status_code != 200:
         continue
       repo.update({'cve_status': 'UNDETERMINED_FILE_PRESENT'})
@@ -203,11 +215,14 @@ def prepareRepo(repo, workdir, upstream):
 
   if not os.path.isfile(".git/hooks/commit-msg"):
     print "Installing Git commit-msg hook..."
-    chreq = requests.get("https://review.lineageos.org/tools/hooks/commit-msg")
-    if chreq.status_code != 200:
-      return False
+    global CACHED_COMMIT_HOOK
+    if not CACHED_COMMIT_HOOK:
+      chreq = retryHttpGet("https://review.lineageos.org/tools/hooks/commit-msg")
+      if chreq.status_code != 200:
+        raise IOError("Cannot download https://review.lineageos.org/tools/hooks/commit-msg")
+      CACHED_COMMIT_HOOK = chreq.content
     with open(".git/hooks/commit-msg", "w") as f:
-      f.write(chreq.content)
+      f.write(CACHED_COMMIT_HOOK)
     os.chmod(".git/hooks/commit-msg", int('0775', 8))
 
   remotes = subprocess.check_output("git remote -v", shell=True)
@@ -319,7 +334,7 @@ def getRepoKernels(repo_name, branch, cache):
   if not branch in cache:
     cache[branch] = {}
   if not repo_name in cache[branch]:
-    req = requests.get("https://raw.githubusercontent.com/LineageOS/"+repo_name+"/"+branch+"/lineage.dependencies")
+    req = retryHttpGet("https://raw.githubusercontent.com/LineageOS/"+repo_name+"/"+branch+"/lineage.dependencies")
     if req.status_code == 200:
       cache[branch][repo_name] = req.json()
     else:
@@ -338,10 +353,10 @@ def updateExtras():
   repos = [g.next() for k,g in itertools.groupby(reposAll, lambda r: r['full_name'])]
 
   print "Querying scheduled builds and deprecated kernels in GitHub CVE tracker... This might take a while..."
-  dks_json = requests.get("https://cve.lineageos.org/api/v1/kernels?deprecated=1").json()
-  devices_list = requests.get("https://raw.githubusercontent.com/LineageOS/lineageos_updater/master/devices.json").json()
-  device_depends = requests.get("https://raw.githubusercontent.com/LineageOS/lineageos_updater/master/device_deps.json").json()
-  build_targets = requests.get("https://raw.githubusercontent.com/LineageOS/hudson/master/lineage-build-targets").content
+  dks_json = retryHttpGet("https://cve.lineageos.org/api/v1/kernels?deprecated=1").json()
+  devices_list = retryHttpGet("https://raw.githubusercontent.com/LineageOS/lineageos_updater/master/devices.json").json()
+  device_depends = retryHttpGet("https://raw.githubusercontent.com/LineageOS/lineageos_updater/master/device_deps.json").json()
+  build_targets = retryHttpGet("https://raw.githubusercontent.com/LineageOS/hudson/master/lineage-build-targets").content
   deprecated_kernels = [d['repo_name'].encode('ascii','ignore') for k,d in dks_json.iteritems()]
   depends_cache = {}
   for t in build_targets.split("\n"):
@@ -372,7 +387,7 @@ def updateExtras():
   print ""
   print "Querying recent approvers in Gerrit... This might take a while..."
   for r in repos:
-    chngreq = requests.get("https://review.lineageos.org/changes/?q=status:merged+project:"+r['full_name']+"&n=20&o=MESSAGES&o=LABELS").content
+    chngreq = retryHttpGet("https://review.lineageos.org/changes/?q=status:merged+project:"+r['full_name']+"&n=20&o=MESSAGES&o=LABELS").content
     assert(chngreq.startswith(")]}'"))
     chngs = json.loads(chngreq[4:])
     mids = set()
@@ -385,7 +400,7 @@ def updateExtras():
     r['maintainers'] = list()
     r['maintainer_emails'] = list()
     for mid in mids:
-      mreq = requests.get("https://review.lineageos.org/accounts/"+repr(mid)).content
+      mreq = retryHttpGet("https://review.lineageos.org/accounts/"+repr(mid)).content
       assert(mreq.startswith(")]}'"))
       m = json.loads(mreq[4:])
       if 'username' in m:
@@ -491,6 +506,7 @@ parser.add_argument('--update-repos-extras', action='store_true', help='Update r
 args = parser.parse_args()
 branches = args.branches.split()
 VERBOSE = args.verbose
+CACHED_COMMIT_HOOK = False
 
 # Call update reviewers
 if args.update_repos_extras:
