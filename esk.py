@@ -73,7 +73,7 @@ def getReposAndBranches():
   kvexp = re.compile("^VERSION\s*=\s*(\d+)\s*$", re.MULTILINE)
   kplexp = re.compile("^PATCHLEVEL\s*=\s*(\d+)\s*$", re.MULTILINE)
   while True:
-    s = retryHttpGet("https://api.github.com/search/repositories?q=user:LineageOS+kernel+in:name&per_page=100&page="+repr(page), auth=auth).json()
+    s = retryHttpGet("https://api.github.com/search/repositories?q=user:LineageOS+fork:true+kernel+in:name&per_page=100&page="+repr(page), auth=auth).json()
     repos.extend(s['items'])
     if len(repos) == s['total_count']:
       break
@@ -334,11 +334,13 @@ def getRepoKernels(repo_name, branch, cache):
   if not branch in cache:
     cache[branch] = {}
   if not repo_name in cache[branch]:
+    cache[branch][repo_name] = list()
     req = retryHttpGet("https://raw.githubusercontent.com/LineageOS/"+repo_name+"/"+branch+"/lineage.dependencies")
     if req.status_code == 200:
-      cache[branch][repo_name] = req.json()
-    else:
-      cache[branch][repo_name] = list()
+      cache[branch][repo_name].extend(req.json())
+    req = retryHttpGet("https://raw.githubusercontent.com/LineageOS/"+repo_name+"/"+branch+"/cm.dependencies")
+    if req.status_code == 200:
+      cache[branch][repo_name].extend(req.json())
 
   for d in cache[branch][repo_name]:
     kernels.update(getRepoKernels(d['repository'], branch, cache))
@@ -364,8 +366,17 @@ def updateExtras():
   print "Querying scheduled builds and deprecated kernels in GitHub CVE tracker... This might take a while..."
   dks_json = retryHttpGet("https://cve.lineageos.org/api/v1/kernels?deprecated=1").json()
   devices_list = retryHttpGet("https://raw.githubusercontent.com/LineageOS/lineageos_updater/master/devices.json").json()
-  device_depends = retryHttpGet("https://raw.githubusercontent.com/LineageOS/lineageos_updater/master/device_deps.json").json()
   build_targets = retryHttpGet("https://raw.githubusercontent.com/LineageOS/hudson/master/lineage-build-targets").content
+
+  page = 1
+  devicesRepos = list()
+  while True:
+    s = retryHttpGet("https://api.github.com/search/repositories?q=user:LineageOS+fork:true+android_device_+in:name&per_page=100&page="+repr(page)).json()
+    devicesRepos.extend(s['items'])
+    if len(devicesRepos) == s['total_count']:
+      break
+    page = page + 1
+
   deprecated_kernels = [d['repo_name'].encode('ascii','ignore') for k,d in dks_json.iteritems()]
   depends_cache = {}
   for t in build_targets.split("\n"):
@@ -376,16 +387,12 @@ def updateExtras():
   for device in devices_list:
     if not 'build_branch' in device:
       continue
-    if not device['model'] in device_depends:
-      if not VERBOSE:
-        print ""
-      print colors.RED+"Cannot find kernel for "+device['model']+". Kernel for this device will not be added to repos_extras.txt"+colors.ENDC
-      print "Please wait for next Regenerate device dependency mappings"
-      continue
     kernels = set()
-    for r in device_depends[device['model']]:
-      kernels.update(getRepoKernels(r, device['build_branch'], depends_cache))
-    assert(len(kernels) == 1)
+    for r in devicesRepos:
+      if r['name'].startswith("android_device_") and r['name'].endswith("_"+device['model']):
+        kernels.update(getRepoKernels(r['name'], device['build_branch'], depends_cache))
+    if(len(kernels) !=  1):
+      raise ValueError("Not 1 kernel found", kernels, device)
     device['kernel'] = kernels.pop()
     if device['kernel'] in deprecated_kernels:
       deprecated_kernels.remove(device['kernel'])
