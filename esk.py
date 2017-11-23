@@ -70,6 +70,8 @@ def getGHPaginated(baseUrl, auth=False):
     results.extend(s['items'])
     if len(results) == s['total_count']:
       break
+    if len(results) > s['total_count']:
+      raise ValueError("Got more paginated items from GitHub than expected", results, s)
     page = page + 1
   return results
 
