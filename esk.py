@@ -44,15 +44,34 @@ class colors:
 
 
 def retryHttpGet(url, auth=False, maxtries = 5):
-  r = requests.get(url, auth=auth)
-  curr = 1
-  while r.status_code!=200 and r.status_code!=404 and curr < maxtries:
-    time.sleep(pow(2, curr-1))
-    r = requests.get(url, auth=auth)
+  r = None
+  e = None
+  curr = 0
+  while (r == None or (r.status_code!=200 and r.status_code!=404)) and curr < maxtries:
+    if curr > 0:
+      time.sleep(pow(2, curr-1))
+    r = None
+    try:  
+      r = requests.get(url, auth=auth)
+    except Exception as ex:
+      e = ex
     curr += 1
+  if r == None:
+    raise IOError("HTTP request thrown exception", url, e)
   if r.status_code!=200 and r.status_code!=404:
     raise IOError("Bad HTTP response code", url, r.status_code)
   return r
+
+def getGHPaginated(baseUrl, auth=False):
+  page = 1
+  results = list()
+  while True:
+    s = retryHttpGet(baseUrl+"&per_page=100&page="+repr(page), auth=auth).json()
+    results.extend(s['items'])
+    if len(results) == s['total_count']:
+      break
+    page = page + 1
+  return results
 
 def getReposAndBranches():
   if os.path.isfile(absPathTo("repos.cache")) and time.time()-os.path.getmtime(absPathTo("repos.cache"))<MAX_CACHE_SECONDS:
@@ -68,16 +87,11 @@ def getReposAndBranches():
 
   print "Getting repos, branches and kernel versions from GitHub... This will take several minutes..."
 
-  page = 1
-  repos = list()
   kvexp = re.compile("^VERSION\s*=\s*(\d+)\s*$", re.MULTILINE)
   kplexp = re.compile("^PATCHLEVEL\s*=\s*(\d+)\s*$", re.MULTILINE)
-  while True:
-    s = retryHttpGet("https://api.github.com/search/repositories?q=user:LineageOS+fork:true+kernel+in:name&per_page=100&page="+repr(page), auth=auth).json()
-    repos.extend(s['items'])
-    if len(repos) == s['total_count']:
-      break
-    page = page + 1
+
+  repos = getGHPaginated("https://api.github.com/search/repositories?q=user:LineageOS+fork:true+kernel+in:name", auth)
+
   ret = list()
   for repo in repos:
     print "Getting branches and kernel versions for "+repo['full_name']+"..."
@@ -363,19 +377,11 @@ def updateExtras():
   reposAll = getReposAndBranches()
   repos = [g.next() for k,g in itertools.groupby(reposAll, lambda r: r['full_name'])]
 
-  print "Querying scheduled builds and deprecated kernels in GitHub CVE tracker... This might take a while..."
+  print "Querying scheduled builds and deprecated kernels in GitHub and LineageOS CVE tracker... This might take a while..."
   dks_json = retryHttpGet("https://cve.lineageos.org/api/v1/kernels?deprecated=1").json()
   devices_list = retryHttpGet("https://raw.githubusercontent.com/LineageOS/lineageos_updater/master/devices.json").json()
   build_targets = retryHttpGet("https://raw.githubusercontent.com/LineageOS/hudson/master/lineage-build-targets").content
-
-  page = 1
-  devicesRepos = list()
-  while True:
-    s = retryHttpGet("https://api.github.com/search/repositories?q=user:LineageOS+fork:true+android_device_+in:name&per_page=100&page="+repr(page)).json()
-    devicesRepos.extend(s['items'])
-    if len(devicesRepos) == s['total_count']:
-      break
-    page = page + 1
+  devicesRepos = getGHPaginated("https://api.github.com/search/repositories?q=user:LineageOS+fork:true+android_device_+in:name")
 
   deprecated_kernels = [d['repo_name'].encode('ascii','ignore') for k,d in dks_json.iteritems()]
   depends_cache = {}
